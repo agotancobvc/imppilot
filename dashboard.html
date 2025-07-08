@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Home{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <!-- Navigation Panel -->
+    <div class="nav-panel" id="navPanel">
+        <div class="nav-header">
+            <h3></h3>
+        </div>
+        
+        <div class="nav-buttons">
+            <button class="nav-btn active" data-page="home">
+                <span>Home</span>
+            </button>
+            <button class="nav-btn" data-page="history">
+                <span>History</span>
+            </button>
+            <button class="nav-btn" data-page="notes">
+                <span>Goals</span>
+            </button>
+            <button class="nav-btn" data-page="settings">
+                <span>Settings</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content" id="mainContent">
+        <div class="page-content active" id="home-page">
+            <div class="page-header">
+                <h1>Real-Time Dashboard</h1>
+                <div class="control-buttons">
+                    <button class="control-btn start-btn" id="startBtn">
+                        <span class="control-icon">▶</span>
+                        <span class="control-text">Start</span>
+                    </button>
+                    <button class="control-btn pause-btn" id="pauseBtn" style="display: none;">
+                        <span class="control-icon">⏸</span>
+                        <span class="control-text">Pause</span>
+                    </button>
+                    <button class="control-btn resume-btn" id="resumeBtn" style="display: none;">
+                        <span class="control-icon">▶</span>
+                        <span class="control-text">Resume</span>
+                    </button>
+                    <button class="control-btn end-btn" id="endBtn" style="display: none;">
+                        <span class="control-icon">⏹</span>
+                        <span class="control-text">End Session</span>
+                    </button>
+                </div>
+            </div>
+            <div class="dashboard-content">
+                <div class="charts-container" id="chartsContainer">
+                    <!-- Default Chart -->
+                    <div class="chart-section" data-chart-id="chart-1">
+                        <div class="chart-header">
+                            <div class="metric-selector">
+                                <label for="metric-1">Metric:</label>
+                                <select class="metric-dropdown" id="metric-1" data-chart-id="chart-1">
+                                    <option value="step_length">Step Length</option>
+                                    <option value="step_length_variability">Step Length Variability</option>
+                                    <option value="stride_length">Stride Length</option>
+                                    <option value="stride_length_variability">Stride Length Variability</option>
+                                    <option value="stride_time_variability">Stride Time Variability</option>
+                                    <option value="cadence">Cadence</option>
+                                    <option value="gait_speed">Gait Speed</option>
+                                    <option value="gait_cycle_variability">Gait Cycle Variability</option>
+                                    <option value="stance_time">Stance Time</option>
+                                    <option value="swing_time">Swing Time</option>
+                                    <option value="swing_time_variability">Swing Time Variability</option>
+                                    <option value="double_support_time">Double Support Time</option>
+                                </select>
+                            </div>
+                            <div class="time-frame-controls">
+                                <button class="time-btn active" data-timeframe="1m">1m</button>
+                                <button class="time-btn" data-timeframe="5m">5m</button>
+                                <button class="time-btn" data-timeframe="10m">10m</button>
+                                <button class="time-btn" data-timeframe="30m">30m</button>
+                                <button class="time-btn" data-timeframe="all">All</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-1-canvas" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="add-chart-section">
+                    <button class="add-chart-btn" id="addChartBtn">
+                        <span class="add-icon">+</span>
+                        <span>Add Chart</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-content" id="history-page">
+            <div class="page-header">
+                <h1>Past Walks</h1>
+                <p>View walk history and generate reports</p>
+            </div>
+            <div class="history-content">
+                <div class="walk-history-list" id="walkHistoryList">
+                    <div class="no-walks">
+                        <p>No walks recorded yet. Start your first session to see data here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-content" id="notes-page">
+            <div class="page-header">
+                <h1>Goals</h1>
+                <p>Manage your goals and observations</p>
+            </div>
+            <div class="content-placeholder">
+                <div class="placeholder-text">Goals content will go here</div>
+            </div>
+        </div>
+
+        <div class="page-content" id="settings-page">
+            <div class="page-header">
+                <h1>Settings</h1>
+                <p>Configure your preferences</p>
+            </div>
+            <div class="content-placeholder">
+                <div class="placeholder-text">Settings content will go here</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+
+
+{% endblock %}
+
+

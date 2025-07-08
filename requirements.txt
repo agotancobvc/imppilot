@@ -1,0 +1,10 @@
+Flask>=2.2
+Flask-SocketIO>=5.3
+eventlet>=0.33         # Required for Flask-SocketIO real-time support
+boto3>=1.34            # AWS SDK for S3 and DynamoDB
+pynamodb>=6.0          # Pythonic DynamoDB ORM
+Flask-PyMongo          # If you ever use MongoDB, otherwise remove
+python-dotenv>=1.0     # For environment variable management (optional but recommended)
+Flask-Cors>=4.0        # If you need CORS support for APIs
+flask_pynamodb>=0.0.2
+reportlab>=4.4.2

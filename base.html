@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    {% if 'patient_id' in session %}
+    <nav>
+        <div class="nav-info">
+            <span class="clinician-info">Clinician: {{ session['clinician_name'] }}</span>
+            <span class="patient-info">Patient: {{ session['patient_id'] }}</span>
+        </div>
+        <div class="nav-actions">
+            <a href="/patient-logout">Switch Patient</a>
+            <a href="/logout">Full Logout</a>
+        </div>
+    </nav>
+    {% endif %}
+    
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
