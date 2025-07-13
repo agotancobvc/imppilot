@@ -3,6 +3,8 @@ import { useSocket } from '@/hooks/useSocket';
 import { MetricChart } from '@/components/Dashboard/MetricChart';
 import { SessionControls } from './SessionControls';
 import './Dashboard.css';
+import '../styles/Dashboard.css';
+import '../styles/globals.css';
 
 interface DashboardProps {
   patientId: string;

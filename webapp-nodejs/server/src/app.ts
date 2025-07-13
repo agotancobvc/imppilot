@@ -10,6 +10,7 @@ import patientRoutes from './routes/patients';
 import metricsRoutes from './routes/metrics';
 import { setupSocketHandlers } from './socket/handlers';
 
+
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {

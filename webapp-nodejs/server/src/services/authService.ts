@@ -1,5 +1,5 @@
-import jwt from 'jsonwebtoken';
-import { config } from '../config';
+import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
+import { config } from '../config/index.js';
 
 interface Clinician {
   id: string;
@@ -27,12 +27,18 @@ export class AuthService {
   }
 
   static generateToken(clinicianId: string): string {
+    const payload = { 
+      clinicianId, 
+      name: this.getClinicianName(clinicianId) 
+    };
+    
     return jwt.sign(
-      { clinicianId, name: this.getClinicianName(clinicianId) },
-      config.jwt.secret,
-      { expiresIn: config.jwt.expiresIn }
+      payload, 
+      config.jwt.secret, 
+      { expiresIn: config.jwt.expiresIn } as any
     );
   }
+  
 
   static verifyToken(token: string): { clinicianId: string; name: string } | null {
     try {
