@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#3b82f6" />
+    <meta name="description" content="Gait Metrics System - Real-time gait analysis for clinical assessment using IoT sensors" />
+    <meta name="keywords" content="gait analysis, healthcare, IoT, real-time tracking, clinical assessment" />
+    <meta name="author" content="Gait Metrics Team" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Gait Metrics System" />
+    <meta property="og:description" content="Advanced real-time gait analysis platform for healthcare professionals" />
+    <meta property="og:site_name" content="Gait Metrics" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="Gait Metrics System" />
+    <meta property="twitter:description" content="Advanced real-time gait analysis platform for healthcare professionals" />
+    
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Google Fonts - Inter for clean, modern typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <!-- Prevent FOUC (Flash of Unstyled Content) -->
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: #f9fafb;
+        color: #111827;
+      }
+      
+      /* Loading screen styles */
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #f9fafb;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+      
+      #loading-screen .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #e5e7eb;
+        border-top: 4px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      #loading-screen .loading-text {
+        margin-top: 16px;
+        font-size: 16px;
+        font-weight: 500;
+        color: #6b7280;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Hide loading screen when React app loads */
+      .app-loaded #loading-screen {
+        display: none;
+      }
+    </style>
+    
+    <title>Gait Metrics System</title>
+  </head>
+  <body>
+    <noscript>
+      <div style="padding: 20px; text-align: center; background-color: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; margin: 20px; border-radius: 8px;">
+        <h2>JavaScript Required</h2>
+        <p>You need to enable JavaScript to run the Gait Metrics System.</p>
+        <p>This application requires JavaScript for real-time data processing and sensor communication.</p>
+      </div>
+    </noscript>
+    
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+      <div style="text-align: center;">
+        <div style="width: 64px; height: 64px; background-color: #3b82f6; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h1 style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 8px;">
+          Gait Metrics System
+        </h1>
+        <p style="color: #6b7280; margin-bottom: 32px;">
+          Real-time Gait Analysis Platform
+        </p>
+        <div class="spinner"></div>
+        <p class="loading-text">Loading application...</p>
+      </div>
+    </div>
+    
+    <!-- React App Mount Point -->
+    <div id="root"></div>
+    
+    <!-- Progressive Web App Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('%PUBLIC_URL%/service-worker.js')
+            .then(function(registration) {
+              console.log('SW registered: ', registration);
+            })
+            .catch(function(registrationError) {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+    
+    <!-- Hide loading screen when React app mounts -->
+    <script>
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          document.body.classList.add('app-loaded');
+        }, 100);
+      });
+    </script>
+  </body>
+</html>
