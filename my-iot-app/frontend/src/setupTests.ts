@@ -1,3 +1,4 @@
+// src/setupTests.ts
 import '@testing-library/jest-dom';
 
 // Mock environment variables
@@ -31,14 +32,14 @@ jest.mock('socket.io-client', () => ({
   }),
 }));
 
-// Mock Recharts for testing
+// Mock Recharts for testing - Note: Using jest.mock instead of JSX
 jest.mock('recharts', () => ({
-  LineChart: ({ children }: any) => <div data-testid="line-chart">{children}</div>,
-  Line: () => <div data-testid="line" />,
-  XAxis: () => <div data-testid="x-axis" />,
-  YAxis: () => <div data-testid="y-axis" />,
-  CartesianGrid: () => <div data-testid="grid" />,
-  Tooltip: () => <div data-testid="tooltip" />,
-  Legend: () => <div data-testid="legend" />,
-  ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
+  LineChart: () => 'LineChart',
+  Line: () => 'Line',
+  XAxis: () => 'XAxis',
+  YAxis: () => 'YAxis',
+  CartesianGrid: () => 'CartesianGrid',
+  Tooltip: () => 'Tooltip',
+  Legend: () => 'Legend',
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => children,
 }));
