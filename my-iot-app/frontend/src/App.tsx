@@ -1,10 +1,11 @@
+// src/App.tsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import ClinicLogin from '@/components/auth/ClinicLogin';
-import ClinicianLogin from '@/components/auth/ClinicianLogin';
-import PatientLogin from '@/components/auth/PatientLogin';
-import Dashboard from '@/components/dashboard/Dashboard';
-import PrivateRoute from '@/components/common/PrivateRoute';
+import ClinicLogin from './components/auth/ClinicLogin';
+import ClinicianLogin from './components/auth/ClinicianLogin';
+import PatientLogin from './components/auth/PatientLogin';
+import Dashboard from './components/dashboard/Dashboard';
+import PrivateRoute from './components/common/PrivateRoute';
 
 const App: React.FC = () => {
   return (
