@@ -1,0 +1,59 @@
+{
+    "compilerOptions": {
+      "target": "ES2020",
+      "useDefineForClassFields": true,
+      "lib": ["ES2020", "DOM", "DOM.Iterable"],
+      "module": "ESNext",
+      "skipLibCheck": true,
+  
+      /* Bundler mode */
+      "moduleResolution": "bundler",
+      "allowImportingTsExtensions": true,
+      "resolveJsonModule": true,
+      "isolatedModules": true,
+      "noEmit": true,
+      "jsx": "react-jsx",
+  
+      /* Linting */
+      "strict": true,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "noFallthroughCasesInSwitch": true,
+  
+      /* Additional options */
+      "allowJs": true,
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "forceConsistentCasingInFileNames": true,
+  
+      /* Path mapping for absolute imports */
+      "baseUrl": ".",
+      "paths": {
+        "@/*": ["./src/*"],
+        "@/components/*": ["./src/components/*"],
+        "@/services/*": ["./src/services/*"],
+        "@/store/*": ["./src/store/*"],
+        "@/types/*": ["./src/types/*"],
+        "@/utils/*": ["./src/utils/*"],
+        "@/hooks/*": ["./src/hooks/*"],
+        "@/config/*": ["./src/config/*"]
+      },
+  
+      /* Type definitions */
+      "types": ["vite/client", "@testing-library/jest-dom"]
+    },
+    "include": [
+      "src/**/*",
+      "src/**/*.ts",
+      "src/**/*.tsx",
+      "src/**/*.vue",
+      "vite.config.ts"
+    ],
+    "exclude": [
+      "node_modules",
+      "dist",
+      "build"
+    ],
+    "references": [{ "path": "./tsconfig.node.json" }]
+  }
+  
