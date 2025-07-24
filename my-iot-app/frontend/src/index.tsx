@@ -1,27 +1,14 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css'; // Import the CSS file
+import App from './App';
 
-@layer base {
-  body {
-    @apply bg-gray-50 text-gray-900;
-  }
-}
+const root = ReactDOM.createRoot(
+  document.getElementById('root') as HTMLElement
+);
 
-@layer components {
-  .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
-  }
-  
-  .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-2 px-4 rounded-lg transition-colors;
-  }
-  
-  .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
-  }
-  
-  .card {
-    @apply bg-white rounded-lg shadow-md p-6;
-  }
-}
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
