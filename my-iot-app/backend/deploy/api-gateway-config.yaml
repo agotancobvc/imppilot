@@ -1,0 +1,230 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'API Gateway configuration for Gait Metrics Backend'
+
+Parameters:
+  LoadBalancerDNS:
+    Type: String
+    Description: DNS name of the Application Load Balancer
+  
+  DomainName:
+    Type: String
+    Description: Custom domain name for the API (optional)
+    Default: ""
+  
+  CertificateArn:
+    Type: String
+    Description: ACM Certificate ARN for HTTPS (optional)
+    Default: ""
+
+Conditions:
+  HasCustomDomain: !Not [!Equals [!Ref DomainName, ""]]
+  HasCertificate: !Not [!Equals [!Ref CertificateArn, ""]]
+
+Resources:
+  # API Gateway REST API
+  GaitMetricsAPI:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: gait-metrics-api
+      Description: API Gateway for Gait Metrics Backend
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      Policy:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action: execute-api:Invoke
+            Resource: '*'
+
+  # VPC Link for ALB integration
+  VPCLink:
+    Type: AWS::ApiGateway::VpcLink
+    Properties:
+      Name: gait-metrics-vpc-link
+      Description: VPC Link to connect API Gateway to ALB
+      TargetArns:
+        - !Sub 
+          - "arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:loadbalancer/app/${LoadBalancerName}/*"
+          - LoadBalancerName: !Select [1, !Split ["-", !Ref LoadBalancerDNS]]
+
+  # Root resource (/)
+  RootResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref GaitMetricsAPI
+      ParentId: !GetAtt GaitMetricsAPI.RootResourceId
+      PathPart: '{proxy+}'
+
+  # Proxy method for all HTTP methods
+  ProxyMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref GaitMetricsAPI
+      ResourceId: !Ref RootResource
+      HttpMethod: ANY
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.path.proxy: true
+      Integration:
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: ANY
+        Uri: !Sub 'http://${LoadBalancerDNS}/{proxy}'
+        ConnectionType: VPC_LINK
+        ConnectionId: !Ref VPCLink
+        RequestParameters:
+          integration.request.path.proxy: method.request.path.proxy
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS'"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+
+  # OPTIONS method for CORS preflight
+  OptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref GaitMetricsAPI
+      ResourceId: !Ref RootResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS'"
+            ResponseTemplates:
+              application/json: ''
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+
+  # Health check resource
+  HealthResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref GaitMetricsAPI
+      ParentId: !GetAtt GaitMetricsAPI.RootResourceId
+      PathPart: health
+
+  HealthMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref GaitMetricsAPI
+      ResourceId: !Ref HealthResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: HTTP
+        IntegrationHttpMethod: GET
+        Uri: !Sub 'http://${LoadBalancerDNS}/health'
+        ConnectionType: VPC_LINK
+        ConnectionId: !Ref VPCLink
+        IntegrationResponses:
+          - StatusCode: 200
+          - StatusCode: 503
+      MethodResponses:
+        - StatusCode: 200
+        - StatusCode: 503
+
+  # API Gateway Deployment
+  APIDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - ProxyMethod
+      - OptionsMethod
+      - HealthMethod
+    Properties:
+      RestApiId: !Ref GaitMetricsAPI
+      StageName: prod
+      StageDescription:
+        Variables:
+          loadBalancerDNS: !Ref LoadBalancerDNS
+
+  # Custom Domain (if provided)
+  CustomDomain:
+    Type: AWS::ApiGateway::DomainName
+    Condition: HasCustomDomain
+    Properties:
+      DomainName: !Ref DomainName
+      CertificateArn: !Ref CertificateArn
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  # Base Path Mapping
+  BasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Condition: HasCustomDomain
+    Properties:
+      DomainName: !Ref CustomDomain
+      RestApiId: !Ref GaitMetricsAPI
+      Stage: prod
+
+  # Usage Plan
+  UsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    Properties:
+      UsagePlanName: gait-metrics-usage-plan
+      Description: Usage plan for Gait Metrics API
+      ApiStages:
+        - ApiId: !Ref GaitMetricsAPI
+          Stage: prod
+      Throttle:
+        RateLimit: 1000
+        BurstLimit: 2000
+      Quota:
+        Limit: 100000
+        Period: DAY
+
+  # API Key
+  APIKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Name: gait-metrics-api-key
+      Description: API Key for Gait Metrics Backend
+      Enabled: true
+
+  # Usage Plan Key
+  UsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !Ref APIKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref UsagePlan
+
+Outputs:
+  APIGatewayURL:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${GaitMetricsAPI}.execute-api.${AWS::Region}.amazonaws.com/prod'
+    Export:
+      Name: !Sub "${AWS::StackName}-APIGatewayURL"
+
+  CustomDomainURL:
+    Description: Custom domain URL (if configured)
+    Condition: HasCustomDomain
+    Value: !Sub 'https://${DomainName}'
+    Export:
+      Name: !Sub "${AWS::StackName}-CustomDomainURL"
+
+  APIKeyId:
+    Description: API Key ID
+    Value: !Ref APIKey
+    Export:
+      Name: !Sub "${AWS::StackName}-APIKeyId"

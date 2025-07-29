@@ -10,6 +10,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { env } from './env.js';
 import { registerSocketHandlers } from '../services/tracking.service.js';
 import { errorMiddleware } from '../middleware/error.middleware.js';
+import healthRoutes from '../routes/health.routes.js';
 import routes from '../routes/index.js';
 
 export function createApp() {
@@ -36,6 +37,9 @@ export function createApp() {
       legacyHeaders: false,
     }),
   );
+
+  // Health check routes (before authentication)
+  app.use('/', healthRoutes);
 
   // REST routes
   routes(app);

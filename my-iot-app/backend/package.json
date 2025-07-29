@@ -5,9 +5,17 @@
     "scripts": {
         "dev": "nodemon --watch src --exec ts-node-esm src/app.ts",
         "build": "tsc",
-        "start": "node dist/app.js",
+        "start": "node dist/src/app.js",
         "test": "vitest run",
-        "migrate": "prisma migrate deploy"
+        "migrate": "prisma migrate deploy",
+        "migrate:deploy": "prisma migrate deploy",
+        "deploy:aws": "./deploy/deploy.sh",
+        "deploy:build": "npm run build && npm run deploy:package",
+        "deploy:package": "mkdir -p deploy/package && cp -r dist/* deploy/package/ && cp package*.json deploy/package/",
+        "health:check": "curl -f http://localhost:3000/health || exit 1",
+        "logs:cloudwatch": "aws logs tail /aws/ec2/gait-metrics-backend --follow",
+        "stack:deploy": "aws cloudformation deploy --template-file deploy/cloudformation-template.yaml --stack-name gait-metrics-backend --capabilities CAPABILITY_IAM",
+        "stack:delete": "aws cloudformation delete-stack --stack-name gait-metrics-backend"
     },
     "dependencies": {
         "@aws-sdk/client-dynamodb": "^3.600.0",
