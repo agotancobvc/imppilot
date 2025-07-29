@@ -2,6 +2,15 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
+// Extend Express Request interface
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;
+    }
+  }
+}
+
 export function authMiddleware(required = true) {
   return (req: Request, res: Response, next: NextFunction) => {
     const header = req.headers.authorization;

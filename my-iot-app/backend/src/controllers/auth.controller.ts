@@ -1,10 +1,10 @@
 // backend/src/controllers/auth.controller.ts
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import * as bcrypt from 'bcryptjs';
+import { sign, verify } from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import { getPrisma } from '../config/db.js';
 import { env } from '../config/env.js';
-import { prismaTx } from '../utils/prismaTx.js';
+
 
 const SALT_ROUNDS = 12;
 
@@ -42,11 +42,11 @@ export async function patientLogin(req: Request, res: Response) {
   if (!patient) return res.status(404).json({ message: 'Patient not found' });
 
   const accessPayload = { sub: clinicianId, pid: patientId, cid: clinicId };
-  const accessToken = jwt.sign(accessPayload, process.env.JWT_ACCESS_SECRET!, {
+  const accessToken = (sign as any)(accessPayload, env.JWT_ACCESS_SECRET, {
     issuer: env.JWT_ISSUER,
     expiresIn: env.JWT_ACCESS_EXPIRES,
   });
-  const refreshToken = jwt.sign(accessPayload, process.env.JWT_REFRESH_SECRET!, {
+  const refreshToken = (sign as any)(accessPayload, env.JWT_REFRESH_SECRET, {
     issuer: env.JWT_ISSUER,
     expiresIn: env.JWT_REFRESH_EXPIRES,
   });
@@ -66,10 +66,10 @@ export async function refreshToken(req: Request, res: Response) {
   if (!stored) return res.status(401).json({ message: 'Invalid refresh token' });
 
   try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as any;
-    const newAccess = jwt.sign(
+    const decoded = verify(refreshToken, env.JWT_REFRESH_SECRET) as any;
+    const newAccess = (sign as any)(
       { sub: decoded.sub, pid: decoded.pid, cid: decoded.cid },
-      process.env.JWT_ACCESS_SECRET!,
+      env.JWT_ACCESS_SECRET,
       { issuer: env.JWT_ISSUER, expiresIn: env.JWT_ACCESS_EXPIRES },
     );
     return res.json({ token: newAccess });

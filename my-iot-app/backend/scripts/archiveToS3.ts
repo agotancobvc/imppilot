@@ -1,11 +1,13 @@
-import { DynamoDBStreamEvent, Context } from 'aws-lambda';
+import { DynamoDBStreamEvent, Context, DynamoDBRecord } from 'aws-lambda';
 import { S3 } from '@aws-sdk/client-s3';
-import zlib from 'zlib';
+import * as zlib from 'zlib';
 
-const s3 = new S3({ region: process.env.AWS_REGION });
+const s3 = new S3({ 
+  region: process.env.AWS_REGION || 'us-east-1'
+});
 
 export const handler = async (event: DynamoDBStreamEvent, _ctx: Context) => {
-  const records = event.Records.filter(r => r.eventName === 'REMOVE').map(r => ({
+  const records = event.Records.filter((r: DynamoDBRecord) => r.eventName === 'REMOVE').map((r: DynamoDBRecord) => ({
     pk: r.dynamodb?.Keys?.PK.S,
     sk: r.dynamodb?.Keys?.SK.S,
     data: r.dynamodb?.OldImage,
