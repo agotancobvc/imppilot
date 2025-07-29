@@ -10,6 +10,10 @@ import { Server as SocketIOServer } from 'socket.io';
 import { env } from './env.js';
 import { registerSocketHandlers } from '../services/tracking.service.js';
 import { errorMiddleware } from '../middleware/error.middleware.js';
+<<<<<<< HEAD
+=======
+import healthRoutes from '../routes/health.routes.js';
+>>>>>>> 0f95ffb703c03c3362b8083360f11c844b33e19e
 import routes from '../routes/index.js';
 
 export function createApp() {
@@ -37,6 +41,12 @@ export function createApp() {
     }),
   );
 
+<<<<<<< HEAD
+=======
+  // Health check routes (before authentication)
+  app.use('/', healthRoutes);
+
+>>>>>>> 0f95ffb703c03c3362b8083360f11c844b33e19e
   // REST routes
   routes(app);
 
