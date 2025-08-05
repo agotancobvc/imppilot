@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://3.92.217.101:3000/api';
+// Use HTTPS for secure communication with the backend
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://imppilot.com/api';
 
 export const API_ENDPOINTS = {
   AUTH: {

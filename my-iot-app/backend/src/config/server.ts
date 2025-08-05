@@ -6,6 +6,9 @@ import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 import { env } from './env.js';
 import { registerSocketHandlers } from '../services/tracking.service.js';
@@ -54,10 +57,29 @@ export function createApp() {
 
 export function createHTTPServer() {
   const app = createApp();
-  const httpServer = createServer(app);
+  
+  // Create HTTP server for health checks
+  const httpServer = createServer((req, res) => {
+    // Redirect all HTTP traffic to HTTPS
+    const host = req.headers.host || 'imppilot.com';
+    const httpsUrl = `https://${host}${req.url}`;
+    res.writeHead(301, { 'Location': httpsUrl });
+    res.end();
+  });
+
+  // HTTPS server configuration
+  const httpsOptions = {
+    key: fs.readFileSync('/etc/letsencrypt/live/imppilot.com/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/imppilot.com/fullchain.pem'),
+    // Remove minVersion as it's causing type issues
+    // The type definition in @types/node doesn't include it in the expected location
+  } as const;
+
+  // Create HTTPS server
+  const httpsServer = https.createServer(httpsOptions, app);
 
   // Socket.io
-  const io = new SocketIOServer(httpServer, {
+  const io = new SocketIOServer(httpsServer, {
     cors: { origin: '*' },
     pingInterval: 3 * 60 * 1000, // 3-minute heartbeat
     pingTimeout: 10 * 60 * 1000, // 10-minute timeout
@@ -65,5 +87,17 @@ export function createHTTPServer() {
 
   registerSocketHandlers(io);
 
-  return { httpServer, io };
+  // Start both HTTP (for redirects) and HTTPS servers
+  const HTTP_PORT = 80;
+  const HTTPS_PORT = 443;
+  
+  httpServer.listen(HTTP_PORT, () => {
+    console.log(`HTTP server running on port ${HTTP_PORT} (redirects to HTTPS)`);
+  });
+
+  httpsServer.listen(HTTPS_PORT, () => {
+    console.log(`HTTPS server running on port ${HTTPS_PORT}`);
+  });
+
+  return { httpServer, httpsServer, io };
 }
