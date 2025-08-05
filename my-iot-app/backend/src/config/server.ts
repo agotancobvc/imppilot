@@ -20,8 +20,10 @@ export function createApp() {
   app.use(helmet());
   app.use(
     cors({
-      origin: '*',
+      origin: ['https://imppilot.com', 'http://localhost:3000', 'http://localhost:5173'],
       credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     }),
   );
   app.use(compression());
