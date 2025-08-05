@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
+import { API_ENDPOINTS } from '@/config/endpoints';
 
 const ClinicianLogin: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -16,7 +17,7 @@ const ClinicianLogin: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/clinician-login`, {
+      const response = await fetch(API_ENDPOINTS.AUTH.CLINICIAN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

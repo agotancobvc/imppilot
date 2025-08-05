@@ -3,6 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://3.92.217.101:3000/a
 export const API_ENDPOINTS = {
   AUTH: {
     CLINIC: `${API_BASE_URL}/auth/clinic`,
+    CLINIC_LOGIN: `${API_BASE_URL}/auth/clinic`,
     CLINICIAN: `${API_BASE_URL}/auth/clinician`,
     PATIENT: `${API_BASE_URL}/auth/patient`,
     LOGOUT: `${API_BASE_URL}/auth/logout`,
