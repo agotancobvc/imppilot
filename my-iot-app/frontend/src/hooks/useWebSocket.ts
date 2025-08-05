@@ -72,10 +72,24 @@ export const useWebSocket = () => {
     }
   };
 
+  const pauseTracking = () => {
+    if (connectionRef.current && patient) {
+      connectionRef.current.pauseTracking(patient.id);
+    }
+  };
+
+  const resumeTracking = () => {
+    if (connectionRef.current && patient) {
+      connectionRef.current.resumeTracking(patient.id);
+    }
+  };
+
   return {
     socket: connectionRef.current,
     startTracking,
     stopTracking,
+    pauseTracking,
+    resumeTracking,
     connectionError,
     isConnected: connectionRef.current?.isConnected || false,
   };

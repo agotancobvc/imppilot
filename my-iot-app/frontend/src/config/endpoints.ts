@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://3.92.217.101:3000/api';
 
 export const API_ENDPOINTS = {
   AUTH: {
@@ -20,4 +20,4 @@ export const API_ENDPOINTS = {
   },
 } as const;
 
-export const WEBSOCKET_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:3001';
+export const WEBSOCKET_URL = process.env.REACT_APP_WS_URL || 'ws://3.92.217.101:3000';

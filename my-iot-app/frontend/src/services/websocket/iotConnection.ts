@@ -92,6 +92,18 @@ export class IoTConnectionService {
     }
   }
 
+  pauseTracking(patientId: string): void {
+    if (this.socket) {
+      this.socket.emit('pauseTracking', { patientId });
+    }
+  }
+
+  resumeTracking(patientId: string): void {
+    if (this.socket) {
+      this.socket.emit('resumeTracking', { patientId });
+    }
+  }
+
   get isConnected(): boolean {
     return this.socket?.connected || false;
   }
