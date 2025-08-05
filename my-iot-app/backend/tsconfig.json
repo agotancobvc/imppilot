@@ -6,11 +6,6 @@
     "lib": ["ES2022"],
     "allowJs": true,
     "outDir": "./dist",
-<<<<<<< HEAD
-    "rootDir": "./src",
-=======
-    "rootDir": "./",
->>>>>>> 0f95ffb703c03c3362b8083360f11c844b33e19e
     "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -26,15 +21,9 @@
     "noImplicitThis": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-<<<<<<< HEAD
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "exactOptionalPropertyTypes": true,
-=======
     "noUncheckedIndexedAccess": false,
     "noImplicitOverride": true,
     "exactOptionalPropertyTypes": false,
->>>>>>> 0f95ffb703c03c3362b8083360f11c844b33e19e
     "resolveJsonModule": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": false,

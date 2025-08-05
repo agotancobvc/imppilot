@@ -1,43 +1,124 @@
 // src/setupTests.ts
 import '@testing-library/jest-dom';
 
-// Mock environment variables
-// Mock Vite environment variables
-(global as any).import = {
-  meta: {
-    env: {
+// Mock environment variables for Vite
+if (typeof import.meta !== 'undefined') {
+  Object.defineProperty(import.meta, 'env', {
+    value: {
       VITE_API_URL: 'http://localhost:3001/api',
       VITE_WS_URL: 'ws://localhost:3001'
-    }
-  }
-};
+    },
+    writable: true
+  });
+}
 
 // Mock localStorage
 const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
+  getItem: vi?.fn?.() || jest?.fn?.() || (() => null),
+  setItem: vi?.fn?.() || jest?.fn?.() || (() => {}),
+  removeItem: vi?.fn?.() || jest?.fn?.() || (() => {}),
+  clear: vi?.fn?.() || jest?.fn?.() || (() => {}),
+  length: 0,
+  key: vi?.fn?.() || jest?.fn?.() || (() => null),
 };
-global.localStorage = localStorageMock as any;
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: true
+});
+
+// Mock sessionStorage
+const sessionStorageMock = {
+  getItem: vi?.fn?.() || jest?.fn?.() || (() => null),
+  setItem: vi?.fn?.() || jest?.fn?.() || (() => {}),
+  removeItem: vi?.fn?.() || jest?.fn?.() || (() => {}),
+  clear: vi?.fn?.() || jest?.fn?.() || (() => {}),
+  length: 0,
+  key: vi?.fn?.() || jest?.fn?.() || (() => null),
+};
+Object.defineProperty(window, 'sessionStorage', {
+  value: sessionStorageMock,
+  writable: true
+});
 
 // Mock WebSocket
-global.WebSocket = jest.fn().mockImplementation(() => ({
-  close: jest.fn(),
-  send: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-}));
+class MockWebSocket {
+  static CONNECTING = 0;
+  static OPEN = 1;
+  static CLOSING = 2;
+  static CLOSED = 3;
 
-// Mock socket.io-client
-jest.mock('socket.io-client', () => ({
-  io: jest.fn().mockReturnValue({
-    on: jest.fn(),
-    emit: jest.fn(),
-    disconnect: jest.fn(),
-    connected: true,
-  }),
-}));
+  readyState = MockWebSocket.OPEN;
+  url: string;
+  onopen: ((event: Event) => void) | null = null;
+  onclose: ((event: CloseEvent) => void) | null = null;
+  onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: Event) => void) | null = null;
+
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  close = vi?.fn?.() || jest?.fn?.() || (() => {});
+  send = vi?.fn?.() || jest?.fn?.() || (() => {});
+  addEventListener = vi?.fn?.() || jest?.fn?.() || (() => {});
+  removeEventListener = vi?.fn?.() || jest?.fn?.() || (() => {});
+  dispatchEvent = vi?.fn?.() || jest?.fn?.() || (() => false);
+}
+
+global.WebSocket = MockWebSocket as any;
+
+// Mock fetch
+global.fetch = vi?.fn?.() || jest?.fn?.() || (() => Promise.resolve(new Response()));
+
+// Mock window.matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: (vi?.fn?.() || jest?.fn?.() || (() => {})).mockImplementation?.((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi?.fn?.() || jest?.fn?.() || (() => {}),
+    removeListener: vi?.fn?.() || jest?.fn?.() || (() => {}),
+    addEventListener: vi?.fn?.() || jest?.fn?.() || (() => {}),
+    removeEventListener: vi?.fn?.() || jest?.fn?.() || (() => {}),
+    dispatchEvent: vi?.fn?.() || jest?.fn?.() || (() => false),
+  })) || ((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  })),
+});
+
+// Mock ResizeObserver
+global.ResizeObserver = (vi?.fn?.() || jest?.fn?.() || function() {}).mockImplementation?.(() => ({
+  observe: vi?.fn?.() || jest?.fn?.() || (() => {}),
+  unobserve: vi?.fn?.() || jest?.fn?.() || (() => {}),
+  disconnect: vi?.fn?.() || jest?.fn?.() || (() => {}),
+})) || function() {
+  return {
+    observe: () => {},
+    unobserve: () => {},
+    disconnect: () => {},
+  };
+};
+
+// Mock IntersectionObserver
+global.IntersectionObserver = (vi?.fn?.() || jest?.fn?.() || function() {}).mockImplementation?.(() => ({
+  observe: vi?.fn?.() || jest?.fn?.() || (() => {}),
+  unobserve: vi?.fn?.() || jest?.fn?.() || (() => {}),
+  disconnect: vi?.fn?.() || jest?.fn?.() || (() => {}),
+})) || function() {
+  return {
+    observe: () => {},
+    unobserve: () => {},
+    disconnect: () => {},
+  };
+};
 
 // Mock Recharts for testing - Note: Using jest.mock instead of JSX
 jest.mock('recharts', () => ({

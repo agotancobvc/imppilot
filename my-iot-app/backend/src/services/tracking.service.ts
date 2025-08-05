@@ -33,9 +33,6 @@ export function registerSocketHandlers(io: SocketIOServer) {
       const metrics = result.data;
       const prisma = await getPrisma();
       await prisma.gaitMetric.create({
-<<<<<<< HEAD
-        data: { ...metrics, sessionId: socket.data.sessionId },
-=======
         data: { 
           timestamp: metrics.timestamp,
           sessionId: socket.data.sessionId as string,
@@ -46,7 +43,6 @@ export function registerSocketHandlers(io: SocketIOServer) {
             gaitSpeed: metrics.gaitSpeed
           }
         },
->>>>>>> 0f95ffb703c03c3362b8083360f11c844b33e19e
       });
       io.to(metrics.patientId).emit('gaitMetrics', metrics);
     });
