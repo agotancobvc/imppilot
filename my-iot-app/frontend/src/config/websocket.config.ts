@@ -1,5 +1,5 @@
 export const WEBSOCKET_CONFIG = {
-    url: process.env.REACT_APP_WS_URL || 'ws://localhost:3001',
+    url: process.env.REACT_APP_WS_URL || 'ws://3.92.217.101:3000',
     reconnectAttempts: 5,
     reconnectDelay: 3000,
     heartbeatInterval: 30000,

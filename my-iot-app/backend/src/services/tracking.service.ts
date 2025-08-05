@@ -51,6 +51,24 @@ export function registerSocketHandlers(io: SocketIOServer) {
       io.to(metrics.patientId).emit('gaitMetrics', metrics);
     });
 
+    socket.on('pauseTracking', async ({ patientId }) => {
+      const prisma = await getPrisma();
+      await prisma.session.update({
+        where: { id: socket.data.sessionId },
+        data: { status: 'paused' },
+      });
+      io.to(patientId).emit('trackingPaused');
+    });
+
+    socket.on('resumeTracking', async ({ patientId }) => {
+      const prisma = await getPrisma();
+      await prisma.session.update({
+        where: { id: socket.data.sessionId },
+        data: { status: 'active' },
+      });
+      io.to(patientId).emit('trackingResumed');
+    });
+
     socket.on('stopTracking', async ({ patientId }) => {
       const prisma = await getPrisma();
       await prisma.session.update({

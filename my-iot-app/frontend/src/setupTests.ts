@@ -2,8 +2,15 @@
 import '@testing-library/jest-dom';
 
 // Mock environment variables
-process.env.REACT_APP_API_URL = 'http://localhost:3001/api';
-process.env.REACT_APP_WS_URL = 'ws://localhost:3001';
+// Mock Vite environment variables
+(global as any).import = {
+  meta: {
+    env: {
+      VITE_API_URL: 'http://localhost:3001/api',
+      VITE_WS_URL: 'ws://localhost:3001'
+    }
+  }
+};
 
 // Mock localStorage
 const localStorageMock = {

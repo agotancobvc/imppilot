@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Clinician Login{% endblock %}
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="tech-lines"></div>
+        <h1 class="login-title">Clinician Portal</h1>
+        <p class="login-subtitle">Enter your credentials to access the system</p>
+        
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+        
+        <form method="POST" action="/clinician-login" class="login-form">
+            <div class="input-group">
+                <input type="text" 
+                       name="clinician_id" 
+                       class="login-input" 
+                       placeholder="◦ Enter Clinician ID" 
+                       required 
+                       autocomplete="off">
+            </div>
+            
+            <div class="input-group">
+                <input type="password" 
+                       name="password" 
+                       class="login-input" 
+                       placeholder="◦ Enter Password" 
+                       required>
+            </div>
+            
+            <button type="submit" class="login-button">
+                <span>Login</span>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
