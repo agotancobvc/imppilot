@@ -14,10 +14,6 @@ async function addTestData() {
       create: {
         code: 'TEST123',
         name: 'Test Clinic',
-        address: '123 Test Street, Test City, TC 12345',
-        phone: '+1-555-TEST-123',
-        email: 'test@testclinic.com',
-        isActive: true,
       },
     });
     
@@ -25,15 +21,14 @@ async function addTestData() {
     
     // Create test clinician
     const clinician = await prisma.clinician.upsert({
-      where: { email: 'test.clinician@testclinic.com' },
+      where: { username: 'test.clinician' },
       update: {},
       create: {
-        email: 'test.clinician@testclinic.com',
+        username: 'test.clinician',
         firstName: 'Test',
         lastName: 'Clinician',
-        password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LeVMpYxNg8L6j/1pG', // password: 'test123'
+        passwordHash: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LeVMpYxNg8L6j/1pG', // password: 'test123'
         clinicId: clinic.id,
-        isActive: true,
       },
     });
     
@@ -42,7 +37,7 @@ async function addTestData() {
     console.log('\n🎉 Test data added successfully!');
     console.log('📋 Login credentials:');
     console.log('   Clinic Code: TEST123');
-    console.log('   Email: test.clinician@testclinic.com');
+    console.log('   Username: test.clinician');
     console.log('   Password: test123');
     
   } catch (error) {
