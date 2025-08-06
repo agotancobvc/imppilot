@@ -22,18 +22,23 @@ router.get('/health', async (req: Request, res: Response) => {
     }
   };
 
+  let databaseHealthy = false;
+  
   try {
-    // Check database connection
+    // Check database connection with robust error handling
     const prisma = await getPrisma();
     await prisma.$queryRaw`SELECT 1`;
     healthCheck.services.database = 'healthy';
+    databaseHealthy = true;
   } catch (error) {
+    console.error('Database health check failed:', error);
     healthCheck.services.database = 'unhealthy';
     healthCheck.status = 'degraded';
+    databaseHealthy = false;
   }
 
   try {
-    // Check DynamoDB connection
+    // Check DynamoDB connection (non-critical)
     const tableName = process.env.DYNAMODB_METRICS_TABLE || 'gait-metrics-prod-metrics';
     await awsClients.dynamo.send(new DescribeTableCommand({ TableName: tableName }));
     healthCheck.services.dynamodb = 'healthy';
@@ -42,7 +47,7 @@ router.get('/health', async (req: Request, res: Response) => {
     healthCheck.status = 'degraded';
   }
 
-  // Check Redis connection (if configured)
+  // Check Redis connection (if configured, non-critical)
   try {
     if (process.env.REDIS_URL) {
       // Redis health check would go here
@@ -55,9 +60,12 @@ router.get('/health', async (req: Request, res: Response) => {
     healthCheck.status = 'degraded';
   }
 
-  // Return 200 for both healthy and degraded status
-  // Only return 503 if database (critical service) is down
-  const statusCode = healthCheck.services.database === 'unhealthy' ? 503 : 200;
+  // ALB-friendly health check logic:
+  // Return 200 if core services (database) are working
+  // Only return 503 if critical services are completely down
+  const statusCode = databaseHealthy ? 200 : 503;
+  
+  console.log(`Health check: database=${healthCheck.services.database}, statusCode=${statusCode}`);
   res.status(statusCode).json(healthCheck);
 });
 
