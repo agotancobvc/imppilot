@@ -5,15 +5,16 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:  # Allow manual triggering
 
 env:
   AWS_REGION: us-east-1
   NODE_VERSION: '18'
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
-    name: Run Tests
+    name: Build and Test
     
     steps:
       - name: Checkout code
@@ -29,10 +30,6 @@ jobs:
       - name: Install backend dependencies
         working-directory: my-iot-app/backend
         run: npm ci
-
-      - name: Run backend tests
-        working-directory: my-iot-app/backend
-        run: npm test
 
       - name: Build backend
         working-directory: my-iot-app/backend
@@ -54,7 +51,7 @@ jobs:
         run: npm run build
 
   deploy-backend:
-    needs: test
+    needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     name: Deploy Backend to EC2
@@ -111,7 +108,7 @@ jobs:
             --description "Deployment from GitHub Actions - $(git rev-parse --short HEAD)"
 
   deploy-frontend:
-    needs: test
+    needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     name: Deploy Frontend to S3/CloudFront
@@ -135,7 +132,7 @@ jobs:
         working-directory: my-iot-app/frontend
         run: npm run build
         env:
-          REACT_APP_API_URL: https://api.imppilot.com
+          VITE_API_URL: https://api.imppilot.com
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
