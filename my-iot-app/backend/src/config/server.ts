@@ -19,6 +19,9 @@ import routes from '../routes/index.js';
 export function createApp() {
   const app = express();
 
+  // Trust proxy (ALB/Load Balancer)
+  app.set('trust proxy', true);
+
   // Global middleware
   app.use(helmet());
   app.use(

@@ -37,14 +37,21 @@ router.get('/health', async (req: Request, res: Response) => {
     databaseHealthy = false;
   }
 
-  try {
-    // Check DynamoDB connection (non-critical)
-    const tableName = process.env.DYNAMODB_METRICS_TABLE || 'gait-metrics-prod-metrics';
-    await awsClients.dynamo.send(new DescribeTableCommand({ TableName: tableName }));
-    healthCheck.services.dynamodb = 'healthy';
-  } catch (error) {
-    healthCheck.services.dynamodb = 'unhealthy';
-    healthCheck.status = 'degraded';
+  // Check DynamoDB connection (non-critical)
+  // Skip DynamoDB check if not explicitly enabled
+  if (process.env.ENABLE_DYNAMODB_HEALTH_CHECK === 'true') {
+    try {
+      const tableName = process.env.DYNAMODB_METRICS_TABLE || 'gait-metrics-prod-metrics';
+      await awsClients.dynamo.send(new DescribeTableCommand({ TableName: tableName }));
+      healthCheck.services.dynamodb = 'healthy';
+    } catch (error) {
+      console.warn('DynamoDB health check failed (non-critical):', error instanceof Error ? error.message : error);
+      healthCheck.services.dynamodb = 'unhealthy';
+      // Don't mark overall status as degraded for DynamoDB issues
+    }
+  } else {
+    // DynamoDB health check is disabled
+    healthCheck.services.dynamodb = 'not_configured';
   }
 
   // Check Redis connection (if configured, non-critical)
@@ -74,12 +81,15 @@ router.get('/health', async (req: Request, res: Response) => {
  */
 router.get('/ready', async (req: Request, res: Response) => {
   try {
-    // Check if all critical services are available
+    // Check if critical services are available
     const prisma = await getPrisma();
     await prisma.$queryRaw`SELECT 1`;
     
-    const tableName = process.env.DYNAMODB_METRICS_TABLE || 'gait-metrics-prod-metrics';
-    await awsClients.dynamo.send(new DescribeTableCommand({ TableName: tableName }));
+    // Only check DynamoDB if enabled
+    if (process.env.ENABLE_DYNAMODB_HEALTH_CHECK === 'true') {
+      const tableName = process.env.DYNAMODB_METRICS_TABLE || 'gait-metrics-prod-metrics';
+      await awsClients.dynamo.send(new DescribeTableCommand({ TableName: tableName }));
+    }
 
     res.status(200).json({
       status: 'ready',
