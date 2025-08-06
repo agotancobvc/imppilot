@@ -3,8 +3,6 @@ import { createHTTPServer } from './config/server.js';
 import { env } from './config/env.js';
 
 (async () => {
-  const { httpServer } = createHTTPServer();
-  httpServer.listen(env.PORT, () =>
-    console.log(`🚀 Backend listening on port ${env.PORT}`),
-  );
+  // Server is already started by createHTTPServer()
+  createHTTPServer();
 })();
