@@ -10,11 +10,26 @@ const SALT_ROUNDS = 12;
 
 /** Step 1 – clinic login */
 export async function clinicLogin(req: Request, res: Response) {
-  const { clinicCode } = req.body as { clinicCode: string };
-  const prisma = await getPrisma();
-  const clinic = await prisma.clinic.findUnique({ where: { code: clinicCode } });
-  if (!clinic) return res.status(401).json({ message: 'Invalid clinic code' });
-  return res.json(clinic);
+  try {
+    console.log('Clinic login request body:', req.body);
+    const { clinicCode } = req.body as { clinicCode: string };
+    console.log('Extracted clinicCode:', clinicCode);
+    
+    if (!clinicCode) {
+      console.log('No clinicCode provided');
+      return res.status(400).json({ message: 'Clinic code is required' });
+    }
+    
+    const prisma = await getPrisma();
+    const clinic = await prisma.clinic.findUnique({ where: { code: clinicCode } });
+    console.log('Found clinic:', clinic);
+    
+    if (!clinic) return res.status(401).json({ message: 'Invalid clinic code' });
+    return res.json(clinic);
+  } catch (error) {
+    console.error('Clinic login error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 }
 
 /** Step 2 – clinician login */
