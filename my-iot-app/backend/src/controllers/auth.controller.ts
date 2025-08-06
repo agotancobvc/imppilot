@@ -1,5 +1,5 @@
 // backend/src/controllers/auth.controller.ts
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 const { sign, verify } = jwt;
 import { Request, Response } from 'express';
