@@ -1,6 +1,7 @@
 // backend/src/services/auth.service.ts
 // Contains helper utilities, e.g. token generation, reused by controllers.
-import { sign } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+const { sign } = jwt;
 import { env } from '../config/env.js';
 
 export function signAccessToken(payload: object) {

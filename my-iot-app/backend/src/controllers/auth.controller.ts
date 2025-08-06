@@ -1,6 +1,7 @@
 // backend/src/controllers/auth.controller.ts
 import * as bcrypt from 'bcryptjs';
-import { sign, verify } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+const { sign, verify } = jwt;
 import { Request, Response } from 'express';
 import { getPrisma } from '../config/db.js';
 import { env } from '../config/env.js';
