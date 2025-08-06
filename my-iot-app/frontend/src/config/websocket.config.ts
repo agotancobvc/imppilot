@@ -1,5 +1,5 @@
 export const WEBSOCKET_CONFIG = {
-    url: process.env.REACT_APP_WS_URL || 'ws://3.92.217.101:3000',
+    url: import.meta.env.VITE_WS_URL || 'ws://gait-metrics-alb-819864409.us-east-1.elb.amazonaws.com',
     reconnectAttempts: 5,
     reconnectDelay: 3000,
     heartbeatInterval: 30000,

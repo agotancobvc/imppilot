@@ -1,5 +1,5 @@
-// Use HTTPS for secure communication with the backend
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://imppilot.com/api';
+// Use environment variable for API URL - no fallback to avoid mixed content issues
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export const API_ENDPOINTS = {
   AUTH: {
