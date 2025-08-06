@@ -1,0 +1,180 @@
+name: Deploy ImPilot to AWS
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_REGION: us-east-1
+  NODE_VERSION: '18'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Run Tests
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: my-iot-app/backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: my-iot-app/backend
+        run: npm ci
+
+      - name: Run backend tests
+        working-directory: my-iot-app/backend
+        run: npm test
+
+      - name: Build backend
+        working-directory: my-iot-app/backend
+        run: npm run build
+
+      - name: Setup Node.js for frontend
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: my-iot-app/frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: my-iot-app/frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: my-iot-app/frontend
+        run: npm run build
+
+  deploy-backend:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    name: Deploy Backend to EC2
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: my-iot-app/backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: my-iot-app/backend
+        run: npm ci
+
+      - name: Build application
+        working-directory: my-iot-app/backend
+        run: npm run build
+
+      - name: Create deployment package
+        run: |
+          mkdir -p deployment-package
+          cp -r my-iot-app/backend/dist deployment-package/
+          cp -r my-iot-app/backend/node_modules deployment-package/
+          cp my-iot-app/backend/package.json deployment-package/
+          cp my-iot-app/backend/package-lock.json deployment-package/
+          cp appspec.yml deployment-package/
+          cp -r scripts deployment-package/
+          cd deployment-package && zip -r ../deployment-package.zip .
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::733366528811:role/GitHubActionsRole
+          role-session-name: GitHubActions-Deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload to S3
+        run: |
+          aws s3 cp deployment-package.zip s3://${{ secrets.S3_BUCKET }}/deployments/deployment-$(date +%Y%m%d-%H%M%S).zip
+          aws s3 cp deployment-package.zip s3://${{ secrets.S3_BUCKET }}/deployments/latest.zip
+
+      - name: Deploy with CodeDeploy
+        run: |
+          aws deploy create-deployment \
+            --application-name ${{ secrets.CODEDEPLOY_APPLICATION_NAME }} \
+            --deployment-group-name ${{ secrets.CODEDEPLOY_DEPLOYMENT_GROUP }} \
+            --s3-location bucket=${{ secrets.S3_BUCKET }},key=deployments/latest.zip,bundleType=zip \
+            --deployment-config-name CodeDeployDefault.EC2OneAtATime \
+            --description "Deployment from GitHub Actions - $(git rev-parse --short HEAD)"
+
+  deploy-frontend:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    name: Deploy Frontend to S3/CloudFront
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: my-iot-app/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: my-iot-app/frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: my-iot-app/frontend
+        run: npm run build
+        env:
+          REACT_APP_API_URL: https://api.imppilot.com
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::733366528811:role/GitHubActionsRole
+          role-session-name: GitHubActions-Frontend
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to S3
+        working-directory: my-iot-app/frontend
+        run: |
+          aws s3 sync dist/ s3://imppilot.com/ --delete --cache-control max-age=31536000,public
+          aws s3 cp s3://imppilot.com/index.html s3://imppilot.com/index.html --cache-control max-age=0,no-cache,no-store,must-revalidate --content-type text/html
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id E2QP4D7UCYTNJ7 \
+            --paths "/*"
+
+  notify:
+    needs: [deploy-backend, deploy-frontend]
+    runs-on: ubuntu-latest
+    if: always() && github.ref == 'refs/heads/main'
+    name: Notify Deployment Status
+    
+    steps:
+      - name: Deployment Success
+        if: needs.deploy-backend.result == 'success' && needs.deploy-frontend.result == 'success'
+        run: |
+          echo "🎉 Deployment successful!"
+          echo "Backend: Deployed to EC2"
+          echo "Frontend: Deployed to S3/CloudFront"
+          echo "Website: https://imppilot.com"
+
+      - name: Deployment Failure
+        if: needs.deploy-backend.result == 'failure' || needs.deploy-frontend.result == 'failure'
+        run: |
+          echo "❌ Deployment failed!"
+          echo "Backend status: ${{ needs.deploy-backend.result }}"
+          echo "Frontend status: ${{ needs.deploy-frontend.result }}"
+          exit 1
