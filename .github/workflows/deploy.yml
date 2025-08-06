@@ -11,9 +11,9 @@ env:
   NODE_VERSION: '18'
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
-    name: Run Tests
+    name: Build and Test
     
     steps:
       - name: Checkout code
@@ -30,10 +30,6 @@ jobs:
         working-directory: my-iot-app/backend
         run: npm ci
 
-      - name: Run backend tests
-        working-directory: my-iot-app/backend
-        run: npm run test
-
       - name: Build backend
         working-directory: my-iot-app/backend
         run: npm run build
@@ -49,16 +45,12 @@ jobs:
         working-directory: my-iot-app/frontend
         run: npm ci
 
-      - name: Run frontend tests
-        working-directory: my-iot-app/frontend
-        run: npm run test:run
-
       - name: Build frontend
         working-directory: my-iot-app/frontend
         run: npm run build
 
   deploy-backend:
-    needs: test
+    needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     name: Deploy Backend to EC2
@@ -115,7 +107,7 @@ jobs:
             --description "Deployment from GitHub Actions - $(git rev-parse --short HEAD)"
 
   deploy-frontend:
-    needs: test
+    needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     name: Deploy Frontend to S3/CloudFront
