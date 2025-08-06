@@ -32,7 +32,7 @@ jobs:
 
       - name: Run backend tests
         working-directory: my-iot-app/backend
-        run: npm test
+        run: npm run test
 
       - name: Build backend
         working-directory: my-iot-app/backend
@@ -48,6 +48,10 @@ jobs:
       - name: Install frontend dependencies
         working-directory: my-iot-app/frontend
         run: npm ci
+
+      - name: Run frontend tests
+        working-directory: my-iot-app/frontend
+        run: npm run test:run
 
       - name: Build frontend
         working-directory: my-iot-app/frontend
@@ -135,7 +139,7 @@ jobs:
         working-directory: my-iot-app/frontend
         run: npm run build
         env:
-          REACT_APP_API_URL: https://api.imppilot.com
+          VITE_API_URL: https://api.imppilot.com
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
