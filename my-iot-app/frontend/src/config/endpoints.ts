@@ -22,4 +22,4 @@ export const API_ENDPOINTS = {
   },
 } as const;
 
-export const WEBSOCKET_URL = process.env.REACT_APP_WS_URL || 'ws://3.92.217.101:3000';
+export const WEBSOCKET_URL = import.meta.env.VITE_WS_URL;
