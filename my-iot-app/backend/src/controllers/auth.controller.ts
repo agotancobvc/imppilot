@@ -12,16 +12,17 @@ const SALT_ROUNDS = 12;
 export async function clinicLogin(req: Request, res: Response) {
   try {
     console.log('Clinic login request body:', req.body);
-    const { clinicCode } = req.body as { clinicCode: string };
-    console.log('Extracted clinicCode:', clinicCode);
+    const { clinicCode, code } = req.body as { clinicCode?: string; code?: string };
+    const actualCode = clinicCode || code;
+    console.log('Extracted code:', actualCode);
     
-    if (!clinicCode) {
-      console.log('No clinicCode provided');
+    if (!actualCode) {
+      console.log('No clinic code provided');
       return res.status(400).json({ message: 'Clinic code is required' });
     }
     
     const prisma = await getPrisma();
-    const clinic = await prisma.clinic.findUnique({ where: { code: clinicCode } });
+    const clinic = await prisma.clinic.findUnique({ where: { code: actualCode } });
     console.log('Found clinic:', clinic);
     
     if (!clinic) return res.status(401).json({ message: 'Invalid clinic code' });
