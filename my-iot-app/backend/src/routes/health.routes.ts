@@ -55,7 +55,9 @@ router.get('/health', async (req: Request, res: Response) => {
     healthCheck.status = 'degraded';
   }
 
-  const statusCode = healthCheck.status === 'healthy' ? 200 : 503;
+  // Return 200 for both healthy and degraded status
+  // Only return 503 if database (critical service) is down
+  const statusCode = healthCheck.services.database === 'unhealthy' ? 503 : 200;
   res.status(statusCode).json(healthCheck);
 });
 
