@@ -58,46 +58,76 @@ export function createApp() {
 export function createHTTPServer() {
   const app = createApp();
   
-  // Create HTTP server for health checks
-  const httpServer = createServer((req, res) => {
-    // Redirect all HTTP traffic to HTTPS
-    const host = req.headers.host || 'imppilot.com';
-    const httpsUrl = `https://${host}${req.url}`;
-    res.writeHead(301, { 'Location': httpsUrl });
-    res.end();
-  });
+  // Check if SSL certificates exist and if we should run HTTPS
+  const sslKeyPath = '/etc/letsencrypt/live/imppilot.com/privkey.pem';
+  const sslCertPath = '/etc/letsencrypt/live/imppilot.com/fullchain.pem';
+  const runHttpsOnly = process.env.HTTPS_ENABLED !== 'false' && fs.existsSync(sslKeyPath) && fs.existsSync(sslCertPath);
+  const port = parseInt(process.env.PORT || '3000', 10);
 
-  // HTTPS server configuration
-  const httpsOptions = {
-    key: fs.readFileSync('/etc/letsencrypt/live/imppilot.com/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/imppilot.com/fullchain.pem'),
-    // Remove minVersion as it's causing type issues
-    // The type definition in @types/node doesn't include it in the expected location
-  } as const;
+  if (runHttpsOnly) {
+    // Production HTTPS mode with SSL certificates
+    console.log('🔒 Starting in HTTPS mode with SSL certificates');
+    
+    // Create HTTP server for redirects
+    const httpServer = createServer((req, res) => {
+      const host = req.headers.host || 'imppilot.com';
+      const httpsUrl = `https://${host}${req.url}`;
+      res.writeHead(301, { 'Location': httpsUrl });
+      res.end();
+    });
 
-  // Create HTTPS server
-  const httpsServer = https.createServer(httpsOptions, app);
+    // HTTPS server configuration
+    const httpsOptions = {
+      key: fs.readFileSync(sslKeyPath),
+      cert: fs.readFileSync(sslCertPath),
+    } as const;
 
-  // Socket.io
-  const io = new SocketIOServer(httpsServer, {
-    cors: { origin: '*' },
-    pingInterval: 3 * 60 * 1000, // 3-minute heartbeat
-    pingTimeout: 10 * 60 * 1000, // 10-minute timeout
-  });
+    // Create HTTPS server
+    const httpsServer = https.createServer(httpsOptions, app);
 
-  registerSocketHandlers(io);
+    // Socket.io
+    const io = new SocketIOServer(httpsServer, {
+      cors: { origin: '*' },
+      pingInterval: 3 * 60 * 1000, // 3-minute heartbeat
+      pingTimeout: 10 * 60 * 1000, // 10-minute timeout
+    });
 
-  // Start both HTTP (for redirects) and HTTPS servers
-  const HTTP_PORT = 80;
-  const HTTPS_PORT = 443;
-  
-  httpServer.listen(HTTP_PORT, () => {
-    console.log(`HTTP server running on port ${HTTP_PORT} (redirects to HTTPS)`);
-  });
+    registerSocketHandlers(io);
 
-  httpsServer.listen(HTTPS_PORT, () => {
-    console.log(`HTTPS server running on port ${HTTPS_PORT}`);
-  });
+    // Start both HTTP (for redirects) and HTTPS servers
+    const HTTP_PORT = 80;
+    const HTTPS_PORT = 443;
+    
+    httpServer.listen(HTTP_PORT, () => {
+      console.log(`HTTP server running on port ${HTTP_PORT} (redirects to HTTPS)`);
+    });
 
-  return { httpServer, httpsServer, io };
+    httpsServer.listen(HTTPS_PORT, () => {
+      console.log(`HTTPS server running on port ${HTTPS_PORT}`);
+    });
+
+    return { httpServer, httpsServer, io };
+  } else {
+    // HTTP only mode (for ALB or development)
+    console.log('🌐 Starting in HTTP mode (SSL handled by ALB or disabled)');
+    
+    // Create HTTP server with the app
+    const httpServer = createServer(app);
+
+    // Socket.io
+    const io = new SocketIOServer(httpServer, {
+      cors: { origin: '*' },
+      pingInterval: 3 * 60 * 1000, // 3-minute heartbeat
+      pingTimeout: 10 * 60 * 1000, // 10-minute timeout
+    });
+
+    registerSocketHandlers(io);
+
+    // Start HTTP server only
+    httpServer.listen(port, () => {
+      console.log(`🚀 HTTP server running on port ${port}`);
+    });
+
+    return { httpServer, httpsServer: null, io };
+  }
 }
