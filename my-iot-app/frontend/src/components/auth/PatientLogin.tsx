@@ -26,7 +26,7 @@ const PatientLogin: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Invalid patient ID');
+        throw new Error('Invalid MRN');
       }
 
       const { patient, token } = await response.json();
@@ -63,7 +63,7 @@ const PatientLogin: React.FC = () => {
               value={patientId}
               onChange={(e) => setPatientId(e.target.value)}
               className="login-input"
-              placeholder="◦ Enter Patient ID"
+              placeholder="◦ Enter MRN (e.g., MRN001)"
               required
               disabled={loading}
               autoComplete="off"

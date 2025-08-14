@@ -52,12 +52,22 @@ export async function clinicianLogin(req: Request, res: Response) {
 export async function patientLogin(req: Request, res: Response) {
   const { clinicId, clinicianId, patientId } = req.body;
   const prisma = await getPrisma();
+
+  // Accept either internal UUID or MRN (case-insensitive)
+  const rawId = String(patientId ?? '').trim();
+  const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const isUuid = uuidV4Regex.test(rawId);
+
   const patient = await prisma.patient.findFirst({
-    where: { id: patientId, clinicId },
+    where: isUuid
+      ? { id: rawId, clinicId }
+      : { mrn: { equals: rawId, mode: 'insensitive' }, clinicId },
   });
+
   if (!patient) return res.status(404).json({ message: 'Patient not found' });
 
-  const accessPayload = { sub: clinicianId, pid: patientId, cid: clinicId };
+  // Use canonical patient UUID in tokens regardless of whether user entered MRN or UUID
+  const accessPayload = { sub: clinicianId, pid: patient.id, cid: clinicId };
   const accessToken = (sign as any)(accessPayload, env.JWT_ACCESS_SECRET, {
     issuer: env.JWT_ISSUER,
     expiresIn: env.JWT_ACCESS_EXPIRES,
