@@ -1,6 +1,6 @@
 // backend/src/controllers/auth.controller.ts
-import * as bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 const { sign, verify } = jwt;
 import { Request, Response } from 'express';
 import { getPrisma } from '../config/db.js';
@@ -48,40 +48,70 @@ export async function clinicianLogin(req: Request, res: Response) {
   return res.json(clinician);
 }
 
-/** Step 3 – patient selection + JWT issuance */
+/** Step 3 – patient login with name and DOB */
 export async function patientLogin(req: Request, res: Response) {
-  const { clinicId, clinicianId, patientId } = req.body;
-  const prisma = await getPrisma();
+  try {
+    const { patientName, dateOfBirth } = req.body;
+    const prisma = await getPrisma();
 
-  // Accept either internal UUID or MRN (case-insensitive)
-  const rawId = String(patientId ?? '').trim();
-  const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  const isUuid = uuidV4Regex.test(rawId);
+    if (!patientName || !dateOfBirth) {
+      return res.status(400).json({ message: 'Patient name and date of birth are required' });
+    }
 
-  const patient = await prisma.patient.findFirst({
-    where: isUuid
-      ? { id: rawId, clinicId }
-      : { mrn: { equals: rawId, mode: 'insensitive' }, clinicId },
-  });
+    const nameParts = patientName.trim().split(' ');
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(' ') || firstName;
 
-  if (!patient) return res.status(404).json({ message: 'Patient not found' });
+    // Find patient by name and date of birth across all clinics with case-insensitive search
+    const patient = await prisma.patient.findFirst({
+      where: {
+        AND: [
+          {
+            firstName: {
+              equals: firstName,
+              mode: 'insensitive'
+            }
+          },
+          {
+            lastName: {
+              equals: lastName,
+              mode: 'insensitive'
+            }
+          },
+          {
+            dateOfBirth: new Date(dateOfBirth)
+          }
+        ]
+      },
+      include: {
+        clinic: true
+      }
+    });
 
-  // Use canonical patient UUID in tokens regardless of whether user entered MRN or UUID
-  const accessPayload = { sub: clinicianId, pid: patient.id, cid: clinicId };
-  const accessToken = (sign as any)(accessPayload, env.JWT_ACCESS_SECRET, {
-    issuer: env.JWT_ISSUER,
-    expiresIn: env.JWT_ACCESS_EXPIRES,
-  });
-  const refreshToken = (sign as any)(accessPayload, env.JWT_REFRESH_SECRET, {
-    issuer: env.JWT_ISSUER,
-    expiresIn: env.JWT_REFRESH_EXPIRES,
-  });
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
 
-  await prisma.refreshToken.create({
-    data: { token: refreshToken, clinicianId },
-  });
+    // Use patient ID as subject for direct patient login
+    const accessPayload = { 
+      sub: patient.id, 
+      pid: patient.id, 
+      cid: patient.clinicId 
+    };
+    const accessToken = (sign as any)(accessPayload, env.JWT_ACCESS_SECRET, {
+      issuer: env.JWT_ISSUER,
+      expiresIn: env.JWT_ACCESS_EXPIRES,
+    });
+    const refreshToken = (sign as any)(accessPayload, env.JWT_REFRESH_SECRET, {
+      issuer: env.JWT_ISSUER,
+      expiresIn: env.JWT_REFRESH_EXPIRES,
+    });
 
-  return res.json({ patient, token: accessToken, refreshToken });
+    return res.json({ patient, token: accessToken, refreshToken });
+  } catch (error) {
+    console.error('Patient login error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 }
 
 /** Refresh access-token */

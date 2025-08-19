@@ -1,6 +1,7 @@
 // backend/src/routes/auth.routes.ts
 import { Router } from 'express';
 import * as Auth from '../controllers/auth.controller.js';
+import * as SimpleAuth from '../controllers/simple-auth.controller.js';
 
 const router = Router();
 
