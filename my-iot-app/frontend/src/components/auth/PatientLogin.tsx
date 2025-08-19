@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
+import { ArrowLeft } from 'lucide-react';
 
 const PatientLogin: React.FC = () => {
-  const [patientId, setPatientId] = useState('');
+  const [patientName, setPatientName] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { clinic, clinician, setPatient, setToken } = useAuthStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -15,24 +15,25 @@ const PatientLogin: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/patient`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+      const response = await fetch(`${apiUrl}/auth/patient`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          clinicId: clinic?.id,
-          clinicianId: clinician?.id,
-          patientId,
+          patientName,
+          dateOfBirth,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Invalid MRN');
+        throw new Error('Invalid patient name or date of birth');
       }
 
       const { patient, token } = await response.json();
-      setPatient(patient);
-      setToken(token);
-      navigate('/dashboard');
+      localStorage.setItem('token', token);
+      localStorage.setItem('userRole', 'patient');
+      localStorage.setItem('patientData', JSON.stringify(patient));
+      navigate('/patient/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -40,17 +41,21 @@ const PatientLogin: React.FC = () => {
     }
   };
 
-  const handleBack = () => {
-    navigate('/auth/clinician');
-  };
 
   return (
     <div className="login-container">
       <div className="login-card">
+        {/* Back Button */}
+        <button 
+          onClick={() => navigate('/patient/register')} 
+          className="flex items-center space-x-2 text-gray-300 hover:text-red-400 transition-colors mb-6 self-start"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Back to Patient Registration</span>
+        </button>
+
         <h1 className="login-title">Patient Access</h1>
-        <p className="login-subtitle">
-          Welcome, {clinician?.firstName} {clinician?.lastName}. Select a patient to monitor.
-        </p>
+        <p className="login-subtitle">Enter your full name and date of birth to access your dashboard.</p>
         
         {error && (
           <div className="error-message">{error}</div>
@@ -60,28 +65,49 @@ const PatientLogin: React.FC = () => {
           <div className="input-group">
             <input
               type="text"
-              value={patientId}
-              onChange={(e) => setPatientId(e.target.value)}
+              value={patientName}
+              onChange={(e) => setPatientName(e.target.value)}
               className="login-input"
-              placeholder="◦ Enter MRN (e.g., MRN001)"
+              placeholder="◦ Enter Full Name (e.g., John Doe)"
               required
               disabled={loading}
-              autoComplete="off"
+              autoComplete="name"
+            />
+          </div>
+          <div className="input-group">
+            <input
+              type="date"
+              value={dateOfBirth}
+              onChange={(e) => setDateOfBirth(e.target.value)}
+              className="login-input"
+              placeholder="◦ Date of Birth"
+              required
+              disabled={loading}
+              autoComplete="bday"
             />
           </div>
           
           <button
             type="submit"
-            disabled={loading || !patientId.trim()}
+            disabled={loading || !patientName.trim() || !dateOfBirth.trim()}
             className="login-button"
           >
-            <span>{loading ? 'Loading...' : 'Access Patient Data'}</span>
+            <span>{loading ? 'Loading...' : 'Access Dashboard'}</span>
           </button>
         </form>
         
         <div className="secondary-actions">
-          <button onClick={handleBack} className="logout-link">
-            Switch Clinician
+          <button 
+            onClick={() => navigate('/clinician/login')} 
+            className="back-button"
+          >
+            ← Back to Clinician Login
+          </button>
+          <button 
+            onClick={() => navigate('/patients')} 
+            className="register-link"
+          >
+            Patient Management
           </button>
         </div>
       </div>

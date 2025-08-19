@@ -1,33 +1,39 @@
-// src/App.tsx
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { WireframeHome } from './components/layout/WireframeHome';
 import ClinicLogin from './components/auth/ClinicLogin';
+import ClinicRegistration from './components/auth/ClinicRegistration';
+import ClinicianRegistration from './components/auth/ClinicianRegistration';
 import ClinicianLogin from './components/auth/ClinicianLogin';
 import PatientLogin from './components/auth/PatientLogin';
-import Dashboard from './components/dashboard/Dashboard';
-import PrivateRoute from './components/common/PrivateRoute';
+import { PatientRegistration } from './components/auth/PatientRegistration';
+import PatientManagement from './components/patient/PatientManagement';
+import { PatientDashboard } from './components/dashboard/PatientDashboard';
+import './index.css';
 
-const App: React.FC = () => {
+function App() {
   return (
     <Router>
-      <div className="App">
+      <div className="app">
         <Routes>
-          <Route path="/auth/clinic" element={<ClinicLogin />} />
-          <Route path="/auth/clinician" element={<ClinicianLogin />} />
-          <Route path="/auth/patient" element={<PatientLogin />} />
-          <Route 
-            path="/dashboard" 
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            } 
-          />
-          <Route path="/" element={<Navigate to="/auth/clinic" />} />
+          {/* Home Page - Starting Point */}
+          <Route path="/" element={<WireframeHome />} />
+          
+          {/* Clinic Flow */}
+          <Route path="/clinic/login" element={<ClinicLogin />} />
+          <Route path="/clinic/register" element={<ClinicRegistration />} />
+          
+          {/* Clinician Flow */}
+          <Route path="/clinic/register" element={<ClinicRegistration />} />
+          <Route path="/clinician/register" element={<ClinicianRegistration />} />
+          <Route path="/clinician/login" element={<ClinicianLogin />} />
+          <Route path="/patient/login" element={<PatientLogin />} />
+          <Route path="/patient/register" element={<PatientRegistration />} />
+          <Route path="/patients" element={<PatientManagement />} />
+          <Route path="/patient/dashboard" element={<PatientDashboard />} />
         </Routes>
       </div>
     </Router>
   );
-};
+}
 
 export default App;

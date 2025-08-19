@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
-import { API_ENDPOINTS } from '@/config/endpoints';
 
 const ClinicLogin: React.FC = () => {
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState('G16B0T');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { setClinic } = useAuthStore();
@@ -16,7 +15,11 @@ const ClinicLogin: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch(API_ENDPOINTS.AUTH.CLINIC_LOGIN, {
+      const apiUrl = 'http://localhost:3000/api';
+      console.log('Clinic login to:', `${apiUrl}/auth/clinic`);
+      console.log('Clinic code:', code);
+      
+      const response = await fetch(`${apiUrl}/auth/clinic`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code }),
@@ -25,7 +28,7 @@ const ClinicLogin: React.FC = () => {
       if (response.ok) {
         const clinic = await response.json();
         setClinic(clinic);
-        navigate('/auth/clinician');
+        navigate('/clinician/register');
       } else {
         setError('Invalid clinic code');
       }
@@ -68,6 +71,16 @@ const ClinicLogin: React.FC = () => {
             <span>{loading ? 'Verifying...' : 'Continue'}</span>
           </button>
         </form>
+        
+        <div className="secondary-actions">
+          <button
+            type="button"
+            onClick={() => navigate('/clinic/register')}
+            className="logout-link"
+          >
+            Register New Clinic
+          </button>
+        </div>
       </div>
     </div>
   );
