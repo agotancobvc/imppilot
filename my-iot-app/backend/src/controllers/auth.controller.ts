@@ -62,26 +62,12 @@ export async function patientLogin(req: Request, res: Response) {
     const firstName = nameParts[0];
     const lastName = nameParts.slice(1).join(' ') || firstName;
 
-    // Find patient by name and date of birth across all clinics with case-insensitive search
+    // Find patient by name and date of birth across all clinics
     const patient = await prisma.patient.findFirst({
       where: {
-        AND: [
-          {
-            firstName: {
-              equals: firstName,
-              mode: 'insensitive'
-            }
-          },
-          {
-            lastName: {
-              equals: lastName,
-              mode: 'insensitive'
-            }
-          },
-          {
-            dateOfBirth: new Date(dateOfBirth)
-          }
-        ]
+        firstName: firstName,
+        lastName: lastName,
+        dateOfBirth: new Date(dateOfBirth)
       },
       include: {
         clinic: true
