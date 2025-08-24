@@ -72,7 +72,7 @@ body::before {
     font-size: 2.25rem;
     font-weight: 700;
     margin-bottom: 8px;
-    background: linear-gradient(135deg, #f8fafc 0%, #b91c1c 50%, #f8fafc 100%);
+    background: linear-gradient(135deg, #f8fafc 0%, #a11b1b 50%, #f8fafc 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -113,7 +113,7 @@ body::before {
 }
 
 .login-input:focus {
-    border-color: #b91c1c;
+    border-color: #a11b1b;
     box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.1);
     background: rgba(20, 20, 20, 0.9);
 }
@@ -125,7 +125,7 @@ body::before {
 
 .login-button {
     padding: 16px 32px;
-    background: linear-gradient(135deg, #b91c1c, #dc2626);
+    background: linear-gradient(135deg, #a11b1b, #dc2626);
     border: none;
     border-radius: 12px;
     color: #ffffff;
@@ -170,7 +170,7 @@ body::before {
 }
 
 .logout-link:hover {
-    color: #b91c1c;
+    color: #a11b1b;
 }
 
 /* Error Messages */
@@ -234,7 +234,7 @@ body::before {
 }
 
 .patient-info {
-    color: #b91c1c;
+    color: #a11b1b;
     font-weight: 600;
     font-size: 0.875rem;
 }
@@ -257,7 +257,7 @@ body::before {
 .logout-btn:hover {
     background: rgba(185, 28, 28, 0.1);
     border-color: rgba(185, 28, 28, 0.3);
-    color: #b91c1c;
+    color: #a11b1b;
 }
 
 /* Dashboard Content */
@@ -275,7 +275,7 @@ body::before {
     font-size: 2.25rem;
     font-weight: 700;
     margin-bottom: 8px;
-    background: linear-gradient(135deg, #f8fafc 0%, #b91c1c 50%, #f8fafc 100%);
+    background: linear-gradient(135deg, #f8fafc 0%, #a11b1b 50%, #f8fafc 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -332,7 +332,7 @@ body::before {
 }
 
 .end-btn {
-    background: linear-gradient(135deg, #b91c1c, #dc2626);
+    background: linear-gradient(135deg, #a11b1b, #dc2626);
     color: white;
     box-shadow: 0 4px 12px rgba(185, 28, 28, 0.25);
 }
@@ -401,7 +401,7 @@ body::before {
 }
 
 .metric-dropdown:focus {
-    border-color: #b91c1c;
+    border-color: #a11b1b;
     box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.1);
 }
 
@@ -430,7 +430,7 @@ body::before {
 .time-btn.active {
     background: rgba(185, 28, 28, 0.2);
     border-color: rgba(185, 28, 28, 0.4);
-    color: #b91c1c;
+    color: #a11b1b;
 }
 
 .chart-container {
@@ -460,7 +460,7 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #b91c1c;
+    color: #a11b1b;
 }
 
 .patient-details h2 {
