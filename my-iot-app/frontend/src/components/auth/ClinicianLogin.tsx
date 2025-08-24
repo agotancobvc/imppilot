@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
-import { API_ENDPOINTS } from '@/config/endpoints';
 
 const ClinicianLogin: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { clinic, setClinician, reset } = useAuthStore();
+  const { clinic, setClinician } = useAuthStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,7 +16,11 @@ const ClinicianLogin: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch(API_ENDPOINTS.AUTH.CLINICIAN, {
+      const apiUrl = 'http://localhost:3000/api';
+      console.log('Clinician login to:', `${apiUrl}/auth/clinician`);
+      console.log('Login data:', { clinicId: clinic?.id, username });
+      
+      const response = await fetch(`${apiUrl}/auth/clinician`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -30,7 +33,7 @@ const ClinicianLogin: React.FC = () => {
       if (response.ok) {
         const clinician = await response.json();
         setClinician(clinician);
-        navigate('/auth/patient');
+        navigate('/patients');
       } else {
         setError('Invalid credentials');
       }
@@ -41,10 +44,6 @@ const ClinicianLogin: React.FC = () => {
     }
   };
 
-  const handleBack = () => {
-    reset();
-    navigate('/auth/clinic');
-  };
 
   return (
     <div className="login-container">
@@ -95,8 +94,17 @@ const ClinicianLogin: React.FC = () => {
         </form>
         
         <div className="secondary-actions">
-          <button onClick={handleBack} className="logout-link">
-            Switch Clinic
+          <button 
+            onClick={() => navigate('/clinic/login')} 
+            className="back-button"
+          >
+            ← Back to Clinic Login
+          </button>
+          <button 
+            onClick={() => navigate('/clinician/register')} 
+            className="register-link"
+          >
+            Register as Clinician
           </button>
         </div>
       </div>

@@ -26,52 +26,43 @@ export function registerSocketHandlers(io: SocketIOServer) {
       socket.data.sessionId = session.id;
     });
 
-    socket.on('gaitMetrics', async (data: unknown) => {
-      const result = GaitMetricSchema.safeParse(data);
-      if (!result.success) return;
-
-      const metrics = result.data;
+    socket.on('gaitMetrics', async ({ patientId, leftSide, rightSide, gaitSpeed }) => {
       const prisma = await getPrisma();
       await prisma.gaitMetric.create({
         data: { 
-          timestamp: metrics.timestamp,
+          timestamp: BigInt(Date.now()),
           sessionId: socket.data.sessionId as string,
-          data: {
-            patientId: metrics.patientId,
-            leftSide: metrics.leftSide,
-            rightSide: metrics.rightSide,
-            gaitSpeed: metrics.gaitSpeed
-          }
+          data: JSON.stringify({
+            patientId,
+            leftSide,
+            rightSide,
+            gaitSpeed,
+          }),
         },
       });
-      io.to(metrics.patientId).emit('gaitMetrics', metrics);
+      io.to(patientId).emit('gaitMetrics', {
+        patientId,
+        leftSide,
+        rightSide,
+        gaitSpeed,
+      });
     });
 
     socket.on('pauseTracking', async ({ patientId }) => {
-      const prisma = await getPrisma();
-      await prisma.session.update({
-        where: { id: socket.data.sessionId },
-        data: { status: 'paused' },
-      });
-      io.to(patientId).emit('trackingPaused');
+      socket.to(patientId).emit('trackingPaused');
     });
 
     socket.on('resumeTracking', async ({ patientId }) => {
-      const prisma = await getPrisma();
-      await prisma.session.update({
-        where: { id: socket.data.sessionId },
-        data: { status: 'active' },
-      });
-      io.to(patientId).emit('trackingResumed');
+      socket.to(patientId).emit('trackingResumed');
     });
 
     socket.on('stopTracking', async ({ patientId }) => {
       const prisma = await getPrisma();
       await prisma.session.update({
-        where: { id: socket.data.sessionId },
+        where: { id: socket.data.sessionId as string },
         data: { endTime: new Date(), status: 'completed' },
       });
-      io.to(patientId).emit('trackingStopped');
+      socket.to(patientId).emit('trackingStopped');
     });
   });
 }

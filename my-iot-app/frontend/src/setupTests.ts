@@ -5,8 +5,8 @@ import '@testing-library/jest-dom';
 if (typeof import.meta !== 'undefined') {
   Object.defineProperty(import.meta, 'env', {
     value: {
-      VITE_API_URL: 'http://localhost:3001/api',
-      VITE_WS_URL: 'ws://localhost:3001'
+      VITE_API_URL: 'http://localhost:3000/api',
+      VITE_WS_URL: 'ws://localhost:3000'
     },
     writable: true
   });

@@ -1,6 +1,6 @@
 // backend/src/controllers/auth.controller.ts
-import * as bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 const { sign, verify } = jwt;
 import { Request, Response } from 'express';
 import { getPrisma } from '../config/db.js';
@@ -48,30 +48,56 @@ export async function clinicianLogin(req: Request, res: Response) {
   return res.json(clinician);
 }
 
-/** Step 3 – patient selection + JWT issuance */
+/** Step 3 – patient login with name and DOB */
 export async function patientLogin(req: Request, res: Response) {
-  const { clinicId, clinicianId, patientId } = req.body;
-  const prisma = await getPrisma();
-  const patient = await prisma.patient.findFirst({
-    where: { id: patientId, clinicId },
-  });
-  if (!patient) return res.status(404).json({ message: 'Patient not found' });
+  try {
+    const { patientName, dateOfBirth } = req.body;
+    const prisma = await getPrisma();
 
-  const accessPayload = { sub: clinicianId, pid: patientId, cid: clinicId };
-  const accessToken = (sign as any)(accessPayload, env.JWT_ACCESS_SECRET, {
-    issuer: env.JWT_ISSUER,
-    expiresIn: env.JWT_ACCESS_EXPIRES,
-  });
-  const refreshToken = (sign as any)(accessPayload, env.JWT_REFRESH_SECRET, {
-    issuer: env.JWT_ISSUER,
-    expiresIn: env.JWT_REFRESH_EXPIRES,
-  });
+    if (!patientName || !dateOfBirth) {
+      return res.status(400).json({ message: 'Patient name and date of birth are required' });
+    }
 
-  await prisma.refreshToken.create({
-    data: { token: refreshToken, clinicianId },
-  });
+    const nameParts = patientName.trim().split(' ');
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(' ') || firstName;
 
-  return res.json({ patient, token: accessToken, refreshToken });
+    // Find patient by name and date of birth across all clinics
+    const patient = await prisma.patient.findFirst({
+      where: {
+        firstName: firstName,
+        lastName: lastName,
+        dateOfBirth: new Date(dateOfBirth)
+      },
+      include: {
+        clinic: true
+      }
+    });
+
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+
+    // Use patient ID as subject for direct patient login
+    const accessPayload = { 
+      sub: patient.id, 
+      pid: patient.id, 
+      cid: patient.clinicId 
+    };
+    const accessToken = (sign as any)(accessPayload, env.JWT_ACCESS_SECRET, {
+      issuer: env.JWT_ISSUER,
+      expiresIn: env.JWT_ACCESS_EXPIRES,
+    });
+    const refreshToken = (sign as any)(accessPayload, env.JWT_REFRESH_SECRET, {
+      issuer: env.JWT_ISSUER,
+      expiresIn: env.JWT_REFRESH_EXPIRES,
+    });
+
+    return res.json({ patient, token: accessToken, refreshToken });
+  } catch (error) {
+    console.error('Patient login error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 }
 
 /** Refresh access-token */

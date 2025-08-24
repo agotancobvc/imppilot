@@ -1,11 +1,11 @@
-// prisma/schema.prisma - SQLite version for local development
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Clinic {
@@ -71,7 +71,7 @@ model GaitMetric {
   session    Session  @relation(fields: [sessionId], references: [id])
   sessionId  String
   timestamp  BigInt
-  data       String   // JSON as string for SQLite
+  data       Json
 }
 
 model RefreshToken {
@@ -86,8 +86,8 @@ model AuditLog {
   tableName  String
   recordId   String
   action     String
-  oldValues  String?  // JSON as string for SQLite
-  newValues  String?  // JSON as string for SQLite
+  oldValues  Json?
+  newValues  Json?
   userId     String?
   userType   String?
   timestamp  DateTime @default(now())
@@ -97,3 +97,4 @@ model AuditLog {
   @@index([tableName, recordId])
   @@index([timestamp])
 }
+

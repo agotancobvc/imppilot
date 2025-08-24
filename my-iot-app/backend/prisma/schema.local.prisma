@@ -1,4 +1,4 @@
-// prisma/schema.prisma - SQLite version for local development
+// prisma/schema.local.prisma - SQLite version for local testing
 generator client {
   provider = "prisma-client-js"
 }

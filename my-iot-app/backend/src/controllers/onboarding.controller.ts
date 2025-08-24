@@ -84,10 +84,13 @@ export async function registerClinic(req: Request, res: Response) {
         data: {
           code: clinicCode,
           name: validatedData.clinicName,
-          // Add additional fields if you extend the schema
-          ...(validatedData.organizationType && { organizationType: validatedData.organizationType }),
-          ...(validatedData.contactPhone && { contactPhone: validatedData.contactPhone }),
-          ...(validatedData.address && { address: validatedData.address })
+          // Convert address object to string if provided
+          ...(validatedData.address && { 
+            address: typeof validatedData.address === 'string' 
+              ? validatedData.address 
+              : `${validatedData.address.street || ''}, ${validatedData.address.city || ''}, ${validatedData.address.state || ''} ${validatedData.address.zipCode || ''}`.trim()
+          }),
+          ...(validatedData.contactPhone && { phone: validatedData.contactPhone })
         }
       });
 
